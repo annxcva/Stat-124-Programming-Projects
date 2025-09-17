@@ -1,0 +1,258 @@
+\documentclass[12pt]{article}
+\usepackage{graphicx, geometry, multicol, fancyhdr}
+
+\setlength{\headheight}{15pt}
+\lhead{1st Sem, AY2023-4}
+\chead{Stat 124: Documents with \textbf{\textsf{R}}}
+\rhead{Amores, Bulao}
+
+\pagestyle{fancy}
+
+\geometry{margin=1in} 
+
+\title{Stat 124: Introduction to Programming \\ Task 8-9: Documents with R }
+\author{Anne Christine Amores \\ Jan Joaquin Bulao}
+\date{December 16, 2023}
+
+\begin{document}
+
+\maketitle
+
+\section{Problems}
+\begin{enumerate}
+ \item \textbf{10 pts} Rewrite the following to eliminate the loops, first using \texttt{apply()} and then using \texttt{rowSums()}:
+    \begin{verbatim}
+X <- matrix(runif(100000),1000,100)
+z <- rep(0,1000)
+for(i in 1:1000){
+    for(j in 1:100){
+        z[i] <- z[i] + X[i,j]
+    }
+}
+\end{verbatim}
+Confirm that all three versions give the same answers, but that your rewrites (\texttt{apply()}
+and \texttt{rowSums()}) are faster than the original. You may have to use \texttt{identical()}, and
+\texttt{system.time()}.
+
+\hrulefill 
+
+\textbf{Answer}
+
+<<>>=
+# Original Code
+X <- matrix(runif(100000),1000,100)
+z <- rep(0,1000)
+for(i in 1:1000){
+  for(j in 1:100){
+    z[i] <- z[i] + X[i,j]
+  }
+}
+
+
+
+# New Code
+z1 <- apply(X,1, sum)
+
+z2 <- rowSums(X)
+
+# Check if same output
+identical(z,z1)
+identical(z,z2)
+
+# Check if faster
+system.time({
+  X <- matrix(runif(100000),1000,100)
+  z <- rep(0,1000)
+  for(i in 1:1000){
+    for(j in 1:100){
+      z[i] <- z[i] + X[i,j]
+    }
+  }}
+)
+system.time(apply(X,1, sum))
+system.time(rowSums(X))
+# Thus, using apply(), and rowSums() is faster.
+@
+
+\hrulefill 
+
+\item \textbf{10 pts} Explain what the following code does. Rewrite the following, replacing the loop with a vectorized operation. Confirm that your rewrite is faster but gives the same result. You may have to use the \texttt{identical()} function.
+HINT: The solution entails one line only. Use \texttt{[]} to rewrite your code.
+\begin{verbatim}
+n <- 100000
+z <- rnorm(n)
+zneg <- 0
+j <- 1
+for(i in 1:n){
+    if(z[i] <0){
+        zneg[j] <- z[i]
+        j <- j+1
+    }
+}
+\end{verbatim}
+
+\hrulefill 
+
+\textbf{Answer}
+
+The following code generates a random sample of 'n' numbers and creates a new vector, zneg, to store the negative values from the generated sample.
+<<>>=
+# Original Code
+n <- 100000
+z <- rnorm(n)
+zneg <- 0
+j <- 1
+for(i in 1:n){
+  if(z[i] <0){
+    zneg[j] <- z[i]
+    j <- j+1
+  }
+}
+
+# New Code
+checker <- ifelse(z<0, z, NA)
+zneg.new <- checker[!is.na(checker)]
+
+# Check if same output
+identical(zneg,zneg.new)
+
+# Check if faster
+system.time({
+n <- 100000
+z <- rnorm(n)
+zneg <- 0
+j <- 1
+for(i in 1:n){
+  if(z[i] <0){
+    zneg[j] <- z[i]
+    j <- j+1
+  }
+}})
+
+system.time({
+checker <- ifelse(z<0, z, NA)
+zneg.new <- checker[!is.na(checker)]
+})
+@
+
+\hrulefill 
+
+\item \textbf{15 pts total} Recall Task 2 in the Week 7 Individual Group Task. Write a function called \texttt{square()} that prints a square composed of asterisks and number signs. The number signs are for the perimeter of the square, while asterisks are for the interior of the square. The function’s argument is \texttt{s}, the square’s side-length. As examples, 
+\begin{multicols}{3}
+    \texttt{square(3)}:
+\begin{verbatim}
+###
+#*#
+###
+\end{verbatim}
+\columnbreak
+\texttt{square(4)}:
+\begin{verbatim}
+    ####
+    #**#
+    #**#
+    ####
+\end{verbatim}
+\columnbreak
+\texttt{square(5)}:
+\begin{verbatim}
+    #####
+    #***#
+    #***#
+    #***#
+    #####
+\end{verbatim}
+\end{multicols}
+
+As you go through the items below, the state of the \texttt{square()} function improves.
+\begin{enumerate}
+ \item \textbf{8 pts} Create the \texttt{square()} function without any input validation yet.
+    
+\hrulefill 
+
+\textbf{Answer}
+<<>>=
+square <- function(s) {
+  for (row in 1:s) {
+    for (col in 1:s) {
+      if (row == 1 | row == s | col == 1 | col == s) {
+        cat("#")
+      } else {
+        cat ("*")
+      }
+    }
+    cat("\n")
+  }
+}
+
+square(3)
+@
+
+\hrulefill 
+
+    \item \textbf{6 pts} Copy your codes from the previous item. Add input validation to the \texttt{square()} function. The value of \texttt{s} must be a positive integer from 2 to 10 only.
+
+\hrulefill 
+
+\textbf{Answer}
+<<>>==
+square <- function(s) {
+  #To check if the input is a positive integer from 2 to 10 
+  if (s %% 1 != 0 | s < 2 | s > 10) {
+    stop("Please enter an integer from 2 to 10")
+  }
+    
+  for (row in 1:s) {
+    for (col in 1:s) {
+      if (row == 1 | row == s | col == 1 | col == s) { 
+        cat("#") 
+        } else { 
+          cat ("*")
+        }
+      }
+    cat("\n")
+  } 
+}
+# Inputs of non-integers or out-of-range integers return:
+square(-3)
+square(3.5)
+@
+
+\hrulefill 
+
+    \item \textbf{1 pt} Copy your codes from the previous item. Specify a default value (\texttt{s=5}) for the \texttt{square()} function.
+
+\hrulefill 
+
+\textbf{Answer}
+<<>>=
+s <- 5
+square <- function(s) {
+  if (s %% 1 != 0 | s < 2 | s > 10) {
+    stop("Please enter an integer from 2 to 10")
+  }
+    
+  for (row in 1:s) {
+    for (col in 1:s) {
+      if (row == 1 | row == s | col == 1 | col == s) { 
+        cat("#") 
+        } else { 
+          cat ("*")
+        }
+      }
+    cat("\n")
+  } 
+}
+
+square(s)
+@
+
+\hrulefill 
+
+\end{enumerate}
+\end{enumerate}
+\begin{center}
+    \textsc{End of Document.}
+\end{center}
+\end{document}
+
